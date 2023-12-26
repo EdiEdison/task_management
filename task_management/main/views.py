@@ -1,15 +1,14 @@
 from django.shortcuts import render
 from .models import Task
 from .serializers import TaskSerializer
-
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework import status
+from .multi import Multi  
 
 from django.http import Http404
 
 
-# Task Management view for listing and creating new tasks
 class TaskListView(APIView):
     def get(self, request):
         tasks = Task.objects.all()
@@ -24,7 +23,6 @@ class TaskListView(APIView):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
-# class for task detail, updating and deleting
 class TaskDetail(APIView):
     def get_object(self, pk):
         try:
@@ -32,7 +30,7 @@ class TaskDetail(APIView):
         except Task.DoesNotExist:
             raise Http404
 
-    def get(self, pk, request):
+    def get(self, request, pk):
         task = self.get_object(pk)
         serializer = TaskSerializer(task)
         return Response(serializer.data)
@@ -49,3 +47,31 @@ class TaskDetail(APIView):
         task = self.get_object(pk)
         task.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+class Analytics(APIView):
+    def get(self, request, **kwargs):
+        # Assuming 'project' is a valid field in your Task model
+        analytics = Multi(Task.objects.values('project', 'completion_time'))
+        period = request.data.get("period")
+        result = analytics.drill_down(dimension='project')
+
+        return Response({"result": result.to_dict()})
+
+
+class Filters(APIView):
+    def get(self, request, *kwargs):
+        # Assuming 'project' is a valid field in your Task model
+        analytics = Multi(Task.objects.values('project', 'completion_time'))
+        result = analytics.slice_and_dice(conditions="project == 'A'")
+
+        return Response({"result": result.to_dict()})
+
+
+class Trends(APIView):
+    def get(self, request, *kwargs):
+        # Assuming 'date_time_of_creation' and 'completion_time' are valid fields in your Task model
+        analytics = Multi(Task.objects.values('date_time_of_creation', 'completion_time'))
+        result = analytics.trend_analysis(time_column='date_time_of_creation', measure_column='completion_time')
+
+        return Response({"result": result.to_dict()})
