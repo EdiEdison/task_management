@@ -51,26 +51,23 @@ class TaskDetail(APIView):
 
 class Analytics(APIView):
     def get(self, request, **kwargs):
-        # Assuming 'project' is a valid field in your Task model
-        analytics = Multi(Task.objects.values('project', 'completion_time'))
+        analytics = Multi(Task.objects.values('task', 'completion_time'))
         period = request.data.get("period")
-        result = analytics.drill_down(dimension='project')
+        result = analytics.drill_down(dimension='task')
 
         return Response({"result": result.to_dict()})
 
 
 class Filters(APIView):
-    def get(self, request, *kwargs):
-        # Assuming 'project' is a valid field in your Task model
-        analytics = Multi(Task.objects.values('project', 'completion_time'))
-        result = analytics.slice_and_dice(conditions="project == 'A'")
+    def get(self, request, condition):
+        analytics = Multi(Task.objects.values('task', 'completion_time'))
+        result = analytics.slice_and_dice(conditions= self.condition)
 
         return Response({"result": result.to_dict()})
 
 
 class Trends(APIView):
-    def get(self, request, *kwargs):
-        # Assuming 'date_time_of_creation' and 'completion_time' are valid fields in your Task model
+    def get(self, request, **kwargs):
         analytics = Multi(Task.objects.values('date_time_of_creation', 'completion_time'))
         result = analytics.trend_analysis(time_column='date_time_of_creation', measure_column='completion_time')
 

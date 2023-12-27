@@ -14,15 +14,15 @@ class Multi():
         return self.data.query(conditions)
 
     def pivot(self, pivot_column, values_column):
-        return self.data.pivot_table(index='Date', columns=pivot_column, values=values_column)
+        return self.data.pivot_table(index='date', columns=pivot_column, values=values_column)
 
     def filter_data(self, condition):
         return self.data.query(condition)
 
     def calculate_aggregations(self):
         return {
-            'average_completion_time': self.data['CompletionTime'].mean(),
-            'total_tasks_completed': self.data['TaskID'].count()
+            'average_completion_time': self.data['completion_time'].mean(),
+            'total_tasks_completed': self.data['id'].count()
         }
 
     def top_n_analysis(self, n, column):

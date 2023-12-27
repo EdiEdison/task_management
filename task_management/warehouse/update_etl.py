@@ -1,30 +1,33 @@
+# update_etl.py
+from celery import Celery
+from celery.decorators import periodic_task
+from datetime import timedelta
 import os
 import pandas as pd
 from django.core.management import setup_environ
 from django.conf import settings
-import time
-from main.models import Task, Project
+from main.models import Task
+
+app = Celery('update_etl', broker='pyamqp://guest:guest@localhost//')
 
 def perform_etl(warehouse_folder):
     tasks_data = Task.objects.values()
-    projects_data = Project.objects.values()
-
     tasks_df = pd.DataFrame.from_records(tasks_data)
-    projects_df = pd.DataFrame.from_records(projects_data)
-
     tasks_file_path = os.path.join(warehouse_folder, "tasks.csv")
-    projects_file_path = os.path.join(warehouse_folder, "projects.csv")
-
     tasks_df.to_csv(tasks_file_path, index=False)
-    projects_df.to_csv(projects_file_path, index=False)
+    print(f"Data saved to CSV file: {tasks_file_path}")
 
-    print(f"Data saved to CSV files: {tasks_file_path}, {projects_file_path}")
-
-if __name__ == "__main__":
+@app.task
+def run_etl():
     setup_environ(settings)
+    
     warehouse_folder = "./warehouse/files"
     os.makedirs(warehouse_folder, exist_ok=True)
+    
+    # Call the ETL function
+    perform_etl(warehouse_folder)
 
-    while True:
-        perform_etl(warehouse_folder)
-        time.sleep(3600)  
+@periodic_task(run_every=timedelta(hours=1), name="run_etl_periodically")
+def periodic_run_etl():
+    run_etl()
+    print("ETL task executed at a periodic interval.")
