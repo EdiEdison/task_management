@@ -1,14 +1,12 @@
 # update_etl.py
-from celery import Celery
-from celery.decorators import periodic_task
+from celery import shared_task
 from datetime import timedelta
 import os
+import django
 import pandas as pd
-from django.core.management import setup_environ
 from django.conf import settings
-from main.models import Task
+from .models import Task
 
-app = Celery('update_etl', broker='pyamqp://guest:guest@localhost//')
 
 def perform_etl(warehouse_folder):
     tasks_data = Task.objects.values()
@@ -17,17 +15,18 @@ def perform_etl(warehouse_folder):
     tasks_df.to_csv(tasks_file_path, index=False)
     print(f"Data saved to CSV file: {tasks_file_path}")
 
-@app.task
+@shared_task
 def run_etl():
-    setup_environ(settings)
+    os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'main.settings')
+    django.setup()
     
-    warehouse_folder = "./warehouse/files"
+    warehouse_folder = "../warehouse/files"
     os.makedirs(warehouse_folder, exist_ok=True)
     
     # Call the ETL function
     perform_etl(warehouse_folder)
 
-@periodic_task(run_every=timedelta(hours=1), name="run_etl_periodically")
+@shared_task
 def periodic_run_etl():
     run_etl()
     print("ETL task executed at a periodic interval.")
