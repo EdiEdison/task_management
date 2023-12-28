@@ -8,7 +8,9 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         try:
-            warehouse_folder = "../../../warehouse/files"
+            base_path = os.path.dirname(os.path.abspath(__file__))
+
+            warehouse_folder = os.path.join(base_path, 'warehouse')
             os.makedirs(warehouse_folder, exist_ok=True)
 
             tasks_data = Task.objects.values()

@@ -1,9 +1,9 @@
 from django.db import models
 
-class Priority(models.TextChoices):
-    HIGH = "high", "HIGH"
-    MEDIUM = "medium","MEDIUM"
-    LOW = "low", "LOW"
+# class Priority(models.TextChoices):
+#     HIGH = "high", "HIGH"
+#     MEDIUM = "medium","MEDIUM"
+#     LOW = "low", "LOW"
 class Task(models.Model):
     title = models.CharField(max_length=100, default=None)
     description = models.TextField()

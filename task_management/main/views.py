@@ -5,6 +5,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework import status
 from .multi import Multi  
+from django.utils import timezone
 
 from django.http import Http404
 
@@ -32,15 +33,21 @@ class TaskDetail(APIView):
 
     def get(self, request, pk):
         task = self.get_object(pk)
-        serializer = TaskSerializer(task)
+        serializer = Task(task)
         return Response(serializer.data)
 
     def put(self, request, pk):
         task = self.get_object(pk)
         serializer = TaskSerializer(task, data=request.data)
+
         if serializer.is_valid():
+            if serializer.validated_data.get('completed'):
+                # If the task is marked as completed, set the completion_time
+                task.completion_time = timezone.now()
+
             serializer.save()
             return Response(serializer.data)
+
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     def delete(self, request, pk):
