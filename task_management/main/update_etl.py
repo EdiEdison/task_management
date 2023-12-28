@@ -7,7 +7,6 @@ import pandas as pd
 from django.conf import settings
 from .models import Task
 
-
 def perform_etl(warehouse_folder):
     tasks_data = Task.objects.values()
     tasks_df = pd.DataFrame.from_records(tasks_data)
@@ -20,7 +19,7 @@ def run_etl():
     os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'main.settings')
     django.setup()
     
-    warehouse_folder = "../warehouse/files"
+    warehouse_folder = os.path.join(settings.BASE_DIR, "warehouse")
     os.makedirs(warehouse_folder, exist_ok=True)
     
     # Call the ETL function

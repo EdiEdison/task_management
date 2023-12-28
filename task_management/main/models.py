@@ -10,7 +10,8 @@ class Task(models.Model):
     date_time_of_creation = models.DateTimeField(auto_now_add=True)
     completed = models.BooleanField(default=False)
     due_date = models.DateField()
-    completion_time = models.DateTimeField(default=None, null=True, blank=True) 
+    completion_time = models.DateTimeField(default=None, null=True, blank=True)
+    task_time  = models.FloatField(default=None, null=True, blank=True) 
 
     def __str__(self):
         return self.title
